@@ -7,11 +7,19 @@ import dateutil.parser
 class Log(Resource):
     
     parser = reqparse.RequestParser() 
+    
+      
     parser.add_argument('userId',
                         type=str,
                         required=True,
                         help="Every item needs an action."
                         )     
+
+    parser.add_argument('sessionId',
+                        type=str,
+                        required=True,
+                        help="Every item needs an action."
+                        )  
     
     parser.add_argument('actions',
                         type=dict,
@@ -20,27 +28,29 @@ class Log(Resource):
                         help="Every item needs an action."
                         )      
     
-    def get(self, name):
-        log = LogModel.find_by_name(name)
+    def get(self):
+        data = Log.parser.parse_args()
+        log = LogModel.find_by_name(data['sessionId'])
         if log:
             return log.Json()
         return {'message': 'log not found'}, 404
 
-    def post(self, name):
-        
-        if LogModel.find_by_name(name):
-            return {'message': "A log with name '{}' already exists.".format(name)}, 400
-        
+    def post(self):
         data = Log.parser.parse_args()
-        log = LogModel(name,data['userId'])
-
+        if LogModel.find_by_name(data['sessionId']):
+            return {'message': "A log with name '{}' already exists.".format(data['sessionId'])}, 400
+        
+        
+        log = LogModel(data['sessionId'],data['userId'])
+        session = data['sessionId']
         data=(data['actions'])
         Item=[]
         properties=[]
+        
         for a in range(len(data)):
-            Item.append(actionModel(name,dateutil.parser.isoparse(data[a]['date'])))
+            Item.append(actionModel(session,dateutil.parser.isoparse(data[a]['date'])))
         for a in range(len(data)):
-            properties.append(propertiesModel(name,data[a]['type'],dateutil.parser.isoparse(data[a]['date']),data[a]['properties']))        
+            properties.append(propertiesModel(session,data[a]['type'],dateutil.parser.isoparse(data[a]['date']),data[a]['properties']))        
 
         for a in range(len(Item)):
                 Item[a].save_to_db()   
@@ -52,12 +62,7 @@ class Log(Resource):
 
         return log.Json(), 201
 
-    def delete(self, name):
-        log = LogModel.find_by_name(name)
-        if log:
-            log.delete_from_db()
 
-        return {'message': 'log deleted'}
 
 
 class LogList(Resource):

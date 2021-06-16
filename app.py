@@ -16,7 +16,7 @@ def create_tables():
     db.create_all()
 
 #adds log
-api.add_resource(Log, '/log/<string:name>')
+api.add_resource(Log, '/log')
 #returns all logs
 api.add_resource(LogList, '/logs')
 #returns logs within a date range
