@@ -30,4 +30,4 @@ api.add_resource(UserId,'/id/<string:name>')
 if __name__ == '__main__':
     from db import db
     db.init_app(app)
-    app.run(debug=True, use_reloader=False) 
+    app.run(port=5000,debug=True, use_reloader=False) 
